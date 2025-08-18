@@ -1,97 +1,83 @@
 const content = document.getElementById("content");
-const sidebar = document.querySelector(".sidebar");
-const toggleMenu = document.getElementById("toggleMenu");
 
-// Dados das páginas
 const pages = {
   "orion": {
     title: "Homem Velho (Órion)",
-    text: "Na tradição indígena, Órion é associado ao Homem Velho, figura de sabedoria.",
-    img: "https://upload.wikimedia.org/wikipedia/commons/1/14/Orion_Constellation.jpg"
+    text: "Na tradição indígena, Órion é associado ao Homem Velho, uma figura de sabedoria e orientação no céu.",
+    img: "https://upload.wikimedia.org/wikipedia/commons/1/14/Orion_Constellation.jpg",
+    curiosidades: [
+      "Alguns povos veem as Três Marias como parte do cinturão de um caçador.",
+      "Era usado como referência para a época de plantar e colher."
+    ]
   },
   "cruzeiro": {
     title: "Cruzeiro do Sul",
-    text: "Importante para orientação e calendário indígena.",
-    img: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Crux_constellation_map.png"
+    text: "Uma das constelações mais importantes do Hemisfério Sul, utilizada para orientação e organização do tempo.",
+    img: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Crux_constellation_map.png",
+    curiosidades: [
+      "Indica o Sul geográfico, sendo usado como uma bússola natural.",
+      "Entre os povos indígenas, também marca ciclos de chuva e seca."
+    ]
   },
   "ema": {
     title: "Ema",
-    text: "Constelação escura da Via Láctea representando a grande ave.",
-    img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Emu_in_the_sky.jpg"
+    text: "Formada por regiões escuras da Via Láctea, representa a grande ave que corre pelos campos.",
+    img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Emu_in_the_sky.jpg",
+    curiosidades: [
+      "É uma das constelações mais famosas entre os povos indígenas australianos e também brasileiros.",
+      "Aparece deitada ou em pé dependendo da estação do ano."
+    ]
   },
   "garca": {
     title: "Garça",
-    text: "Representa a ave que habita os rios e céus do Brasil.",
-    img: "https://upload.wikimedia.org/wikipedia/commons/8/84/Heron_constellation.png"
+    text: "Representa a ave que habita os céus e rios do Brasil, símbolo de delicadeza e atenção.",
+    img: "https://upload.wikimedia.org/wikipedia/commons/8/84/Heron_constellation.png",
+    curiosidades: [
+      "Está associada às águas, rios e lagos.",
+      "Marca o período de migração das aves."
+    ]
   },
   "jararaca": {
     title: "Jararaca",
-    text: "Uma das constelações indígenas que simboliza a serpente.",
-    img: "https://upload.wikimedia.org/wikipedia/commons/4/47/Snake_constellation.png"
+    text: "Simboliza a serpente, animal que habita tanto o chão quanto o imaginário cultural.",
+    img: "https://upload.wikimedia.org/wikipedia/commons/4/47/Snake_constellation.png",
+    curiosidades: [
+      "Vista como guardiã da floresta.",
+      "Alguns povos acreditam que seu aparecimento indica a época de chuvas."
+    ]
   },
   "via-lactea": {
     title: "Via Láctea",
-    text: "A grande faixa luminosa no céu, rica em significados para diversos povos indígenas.",
-    img: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Milky_Way_arch.jpg"
+    text: "A grande faixa luminosa no céu, com enorme importância cultural e espiritual.",
+    img: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Milky_Way_arch.jpg",
+    curiosidades: [
+      "Alguns povos a chamam de 'Caminho das Almas'.",
+      "Para os Guarani, é a estrada que leva ao mundo espiritual."
+    ]
   }
 };
 
-// Navegação
 document.querySelectorAll(".sidebar a").forEach(link => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
     const page = e.target.dataset.page;
-    const { title, text, img } = pages[page];
+    const { title, text, img, curiosidades } = pages[page];
+
     content.innerHTML = `
       <h2>${title}</h2>
       <p>${text}</p>
-      <img src="${img}" alt="${title}" class="constelacao fade">
+      <img src="${img}" alt="${title}" class="constelacao">
+      <div class="curiosidades">
+        <h3>🔎 Curiosidades</h3>
+        <ul>
+          ${curiosidades.map(item => `<li>${item}</li>`).join("")}
+        </ul>
+      </div>
     `;
-    // Fecha menu no mobile
-    sidebar.classList.remove("active");
+
+    content.classList.remove("fade");
+    void content.offsetWidth; // força reflow
+    content.classList.add("fade");
   });
 });
 
-// Botão do menu (mobile)
-toggleMenu.addEventListener("click", () => {
-  sidebar.classList.toggle("active");
-});
-
-// Fundo estrelado animado
-const canvas = document.getElementById("stars");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let stars = [];
-for (let i = 0; i < 150; i++) {
-  stars.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    radius: Math.random() * 1.5,
-    dx: (Math.random() - 0.5) * 0.2,
-    dy: (Math.random() - 0.5) * 0.2
-  });
-}
-
-function drawStars() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "white";
-  stars.forEach(star => {
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-    ctx.fill();
-    star.x += star.dx;
-    star.y += star.dy;
-
-    if (star.x < 0 || star.x > canvas.width) star.dx *= -1;
-    if (star.y < 0 || star.y > canvas.height) star.dy *= -1;
-  });
-  requestAnimationFrame(drawStars);
-}
-drawStars();
-
-window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
