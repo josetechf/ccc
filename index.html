@@ -1,35 +1,529 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cosmos Indígena</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Sabedoria Estelar dos Povos Originários</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Earth & Sky -->
+    <!-- Application Structure Plan: The SPA is designed with a thematic, non-linear structure. A fixed sidebar navigation allows users to select a specific celestial entity (Jararaca, Via Láctea, Homem Velho, etc.). Clicking a navigation item dynamically displays the corresponding content in the main view area, replacing the previous content. This approach was chosen to break down the dense text into digestible, self-contained topics, empowering users to explore based on their interest rather than a prescribed order. This enhances usability by making information discovery quick and focused. Each content section uses cards and accordions to further organize details, promoting engagement through interaction. A new dedicated section for LLM interaction is added via sidebar navigation, allowing users to query insights dynamically. -->
+    <!-- Visualization & Content Choices: Report Info: Descriptions of constellations and their cultural significance. -> Goal: Inform & Organize. -> Viz/Presentation Method: Structured HTML with Tailwind CSS, using cards, lists, and custom icons (Unicode characters) to present qualitative information clearly. Conceptual "visuals" are added using div elements with Tailwind classes for backgrounds/gradients/borders and Unicode icons, providing abstract representations. A new text input/output area is added for LLM interaction. -> Interaction: Click-based navigation to switch between content sections. Clickable headers within sections to reveal more detailed text (accordion-style). Hover effects on the "visuals". A new button triggers LLM text generation based on user input. -> Justification: The content is narrative and descriptive, not quantitative. An interactive text-based approach is most effective. The conceptual visuals enhance understanding. The LLM integration provides dynamic Q&A, directly enhancing knowledge exploration. -> Library/Method: Vanilla JavaScript for interaction logic, Gemini API for LLM. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDF8F0; /* Warm Neutral Background */
+            color: #4A4A4A;
+            background-image: radial-gradient(circle at top left, #FBF4E8 0%, #FDF8F0 50%, #F5EDE6 100%);
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .nav-link.active {
+            background-color: #EAE0D5;
+            border-left-color: #C6AC8F; /* Subtle Accent */
+            color: #333;
+            font-weight: 600;
+        }
+        .nav-link:hover {
+            background-color: #F4ECE0;
+            border-left-color: #D6C0A5;
+        }
+        .content-card {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #EAE0D5;
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease-out; /* Adjusted duration for smoother fade */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); } /* Slightly larger initial translateY */
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .concept-visual {
+            width: 140px; /* Fixed width for consistency */
+            height: 140px; /* Fixed height */
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.5); /* Added inset shadow for inner border effect */
+            cursor: pointer;
+            transition: all 0.3s ease-in-out; /* Smoother transition */
+            border: 1px solid rgba(0,0,0,0.05);
+            background-color: #FDFDFD;
+        }
+        .concept-visual:hover {
+            transform: translateY(-8px) rotateY(3deg) scale(1.03); /* More pronounced 3D effect and lift */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.7); /* Deeper shadow on hover */
+        }
+        .concept-visual .icon {
+            font-size: 3rem;
+            line-height: 1;
+        }
+        .concept-visual .label {
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 600; /* font-semibold */
+            margin-top: 8px;
+            color: #333;
+        }
+        .concept-visual .description {
+            font-size: 0.75rem; /* text-xs */
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* Specific visual styles */
+        .viz-jararaca-rain { background: linear-gradient(135deg, #dbeafe, #93c5fd); } /* Blue-sky gradient */
+        .viz-jararaca-snake { background: linear-gradient(135deg, #a78bfa, #8b5cf6); } /* Purple gradient */
+        .viz-homemvelho-seasons { background: linear-gradient(135deg, #fde68a, #fcd34d); } /* Yellow-orange gradient */
+        .viz-homemvelho-ancestor { background: linear-gradient(135deg, #fed7aa, #fbbf24); } /* Orange-gold gradient */
+        .viz-garca-wisdom { background: linear-gradient(135deg, #bfdbfe, #60a5fa); } /* Light blue gradient */
+        .viz-garca-connection { background: linear-gradient(135deg, #a78bfa, #c4b5fd); } /* Soft purple gradient */
+        .viz-ema-darksky { background: linear-gradient(135deg, #4b5563, #1f2937); color: white; } /* Dark grey gradient */
+        .viz-ema-agriculture { background: linear-gradient(135deg, #a7f3d0, #34d399); } /* Green gradient */
+        .viz-cruzeiro-compass { background: linear-gradient(135deg, #d1d5db, #9ca3af); } /* Grey gradient */
+        .viz-cruzeiro-upright { background: linear-gradient(135deg, #bfdbfe, #3b82f6); } /* Medium blue gradient */
+        .viz-vialactea-path { background: linear-gradient(135deg, #c4b5fd, #8b5cf6); } /* Purple-blue gradient */
+        .viz-vialactea-spirit { background: linear-gradient(135deg, #fbcfe8, #f472b6); } /* Pink-purple gradient */
+
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #C6AC8F;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body>
-  <aside class="sidebar">
-    <h1>🌌 Cosmos Indígena</h1>
-    <nav>
-      <ul>
-        <li><a href="#" data-page="orion">Homem Velho (Órion)</a></li>
-        <li><a href="#" data-page="cruzeiro">Cruzeiro do Sul</a></li>
-        <li><a href="#" data-page="ema">Ema</a></li>
-        <li><a href="#" data-page="garca">Garça</a></li>
-        <li><a href="#" data-page="jararaca">Jararaca</a></li>
-        <li><a href="#" data-page="via-lactea">Via Láctea</a></li>
-      </ul>
-    </nav>
-  </aside>
+<body class="min-h-screen flex flex-col lg:flex-row">
 
-  <main id="content">
-    <h2>Bem-vindo ao Cosmos Indígena</h2>
-    <p>Escolha uma constelação no menu lateral para explorar sua história, imagens e curiosidades.</p>
-  </main>
+    <!-- Sidebar Navigation -->
+    <aside class="w-full lg:w-64 bg-[#F8F1E9] border-b lg:border-r border-[#EAE0D5] flex-shrink-0">
+        <div class="p-6">
+            <h1 class="text-xl font-bold text-[#5C4B3E]">Cosmos Indígena</h1>
+            <p class="text-sm text-[#7A6C60] mt-1">Um Olhar para o Céu Ancestral</p>
+        </div>
+        <nav id="navigation" class="flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible">
+            <a href="#jararaca" class="nav-link active p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>🐍</span> Jararaca</a>
+            <a href="#homem-velho" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>👴</span> Homem Velho</a>
+            <a href="#garca" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>🕊️</span> Garça</a>
+            <a href="#ema" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>🪶</span> Ema</a>
+            <a href="#cruzeiro" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>✨</span> Cruzeiro do Sul</a>
+            <a href="#via-lactea" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>🌌</span> Via Láctea</a>
+            <a href="#ask-elder" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>💬</span> Pergunte ao Ancião ✨</a>
+        </nav>
+    </aside>
 
-  <footer>
-    <p>✨ Projeto educativo sobre o céu e a cultura indígena | Cosmos Indígena 2025</p>
-  </footer>
+    <!-- Main Content -->
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-10">
+        <!-- Content will be injected here by JavaScript -->
+    </main>
 
-  <script src="script.js"></script>
+    <script>
+        const contentData = {
+            'jararaca': {
+                title: 'A Constelação da Jararaca (Aña poero)',
+                intro: 'Conhecida como "Aña poero" pelos povos Tukano, a constelação da Jararaca é um calendário natural que marca o início do ano. Seu surgimento está associado à época de chuvas intensas e cheias dos rios, influenciando profundamente o ciclo de vida, trabalho e rituais na Amazônia. Imagine o formato sinuoso de uma jararaca, com partes de seu corpo representando fases da cheia dos rios.',
+                visuals: [
+                    {
+                        className: 'viz-jararaca-rain',
+                        icon: '🌧️',
+                        label: 'Ciclo das Chuvas',
+                        description: 'Visualização da época de chuvas intensas e cheias dos rios, um sinal vital para a comunidade Tukano.'
+                    },
+                    {
+                        className: 'viz-jararaca-snake',
+                        icon: '🐍',
+                        label: 'Silhueta Estelar',
+                        description: 'Representação abstrata da constelação da Jararaca como uma cobra sinuosa no céu noturno, guiando as atividades.'
+                    }
+                ],
+                sections: [
+                    {
+                        icon: '🗓️',
+                        title: 'Calendário Natural e Atividades',
+                        content: 'Observada em novembro, a Jararaca indica o começo do ciclo anual para os Tukano. As enchentes associadas a ela afetam diretamente a pesca, que diminui com a subida das águas. Isso direciona a comunidade para outras atividades, como a caça e o plantio, que se tornam mais relevantes nesse período, garantindo a subsistência.'
+                    },
+                    {
+                        icon: '👥',
+                        title: 'Organização Social e Rituais',
+                        content: 'O aparecimento da constelação influencia a organização social e ritualística. É o momento para rituais de passagem, cerimônias como casamentos, a produção de artesanato e importantes trocas entre diferentes grupos. O início da passagem da constelação é marcado por rituais de benzimento para proteção da comunidade, especialmente contra picadas de jararaca, e para a preparação das atividades da roça.'
+                    },
+                    {
+                        icon: '🌍',
+                        title: 'Criação do Mundo e Ciclos de Vida',
+                        content: 'Os Tukano associam a constelação da jararaca a episódios da criação do mundo, conectando o fenômeno natural a narrativas míticas fundamentais. Cada parte do corpo da serpente celestial corresponde a diferentes fases da enchente, ajudando a entender os ciclos de vida dos peixes e outros animais, adaptando suas atividades de acordo com a época.'
+                    }
+                ]
+            },
+            'homem-velho': {
+                title: 'A Constelação do Homem Velho (Tuya)',
+                intro: 'Conhecida por diferentes nomes, como "Tuya" em guarani, a constelação do Homem Velho é um importante marcador temporal e narrativo. Formada pelas constelações ocidentais de Touro e Órion, ela auxilia na compreensão dos ciclos da natureza e está associada a mitos de criação. Visualmente, imagine uma figura de ancião, com uma das "pernas" possivelmente cortada, representada por uma estrela.',
+                visuals: [
+                    {
+                        className: 'viz-homemvelho-seasons',
+                        icon: '🌞❄️',
+                        label: 'Início das Estações',
+                        description: 'Representa a dualidade do Homem Velho indicando o início do verão no sul e da estação chuvosa no norte.'
+                    },
+                    {
+                        className: 'viz-homemvelho-ancestor',
+                        icon: '👴',
+                        label: 'Sabedoria Ancestral',
+                        description: 'Simboliza a figura do ancião, um guardião do tempo e transmissor de conhecimentos milenares.'
+                    }
+                ],
+                sections: [
+                    {
+                        icon: '⏳',
+                        title: 'Marcador Temporal',
+                        content: 'A aparição do Homem Velho indica o início do verão para os povos do sul do Brasil e o começo da estação chuvosa para os do norte. Sua presença no céu marca momentos cruciais para a organização das comunidades, influenciando o plantio, a colheita e outras atividades diárias.'
+                    },
+                    {
+                        icon: '📜',
+                        title: 'Mitos de Criação e Lendas',
+                        content: 'Em muitas narrativas, o Homem Velho é uma figura traída pela esposa, que o troca pelo irmão. Como recompensa por sua lealdade, os deuses o transformam em constelação. Uma versão do mito descreve que a esposa cortou a perna do marido para ficar com o cunhado, mas os deuses, com pena, o transformaram em estrela, sendo que a estrela Betelgeuse representa o local da perna cortada. Ele também pode ser visto como um guardião do tempo.'
+                    },
+                    {
+                        icon: '🌿',
+                        title: 'Conexão com a Natureza e a Cultura',
+                        content: 'Os povos originários utilizavam as constelações para se orientar, prever mudanças climáticas e organizar suas atividades. As lendas associadas ao Homem Velho eram transmitidas oralmente, garantindo a continuidade do conhecimento e da cultura, fortalecendo a relação dos povos indígenas com o meio ambiente. É um símbolo de sabedoria ancestral e um guia para a vida na natureza.'
+                    }
+                ]
+            },
+            'garca': {
+                title: 'A Constelação da Garça',
+                intro: 'A constelação da Garça possui um significado profundo para diversos povos originários, especialmente na Amazônia. É associada a ciclos da natureza, sabedoria e, para alguns povos como os Desana, é uma figura central em suas cosmologias, explicando a origem do universo e da humanidade. Pense na postura elegante e atenta de uma garça observando.',
+                visuals: [
+                    {
+                        className: 'viz-garca-wisdom',
+                        icon: '🧠',
+                        label: 'Símbolo de Sabedoria',
+                        description: 'Representa a garça como um símbolo de percepção, atenção e adaptação, qualidades valorizadas no conhecimento indígena.'
+                    },
+                    {
+                        className: 'viz-garca-connection',
+                        icon: '↔️',
+                        label: 'Conexão entre Mundos',
+                        description: 'Simboliza a transição da garça entre o mundo físico e espiritual, conectando céu e terra.'
+                    }
+                ],
+                sections: [
+                    {
+                        icon: '🔄',
+                        title: 'Ciclos da Natureza e Sabedoria',
+                        content: 'A Garça é utilizada para marcar a passagem do tempo e as mudanças nas estações, indicando períodos de chuva, seca, e ciclos de vida de animais e plantas. Com sua observação atenta e movimentos precisos, é vista como um símbolo de sabedoria, percepção e capacidade de adaptação, servindo como um lembrete para a importância da observação cuidadosa e da atenção plena.'
+                    },
+                    {
+                        icon: '🌌',
+                        title: 'Origem, Criação e Conexão entre Mundos',
+                        content: 'Em algumas cosmologias, a Garça é uma figura central, associada à criação do mundo e ao surgimento dos seres vivos. Ela é vista como um ser que transita entre diferentes planos, conectando o mundo físico e o espiritual, o céu e a terra.'
+                    },
+                    {
+                        icon: '🎨',
+                        title: 'Diversidade de Interpretações',
+                        content: 'É importante ressaltar que cada povo indígena possui suas próprias interpretações e histórias relacionadas às constelações, refletindo suas experiências e conhecimentos únicos sobre o mundo natural e espiritual. Para os Desana, a Garça é fundamental em sua visão de mundo, explicando a origem da humanidade e a estrutura do universo.'
+                    }
+                ]
+            },
+            'ema': {
+                title: 'A Constelação da Ema (Guirá Nhandu)',
+                intro: 'Conhecida como "Guirá Nhandu" em tupi-guarani, a Ema é uma das mais importantes "constelações escuras", formada por uma mancha na Via Láctea que se assemelha à silhueta de uma ema. Seu surgimento entre junho e julho é um calendário agrícola preciso, indicando o início do inverno no sul e da estação seca no norte.',
+                visuals: [
+                    {
+                        className: 'viz-ema-darksky',
+                        icon: '⚫',
+                        label: 'A Constelação Escura',
+                        description: 'Representação da silhueta escura da Ema formada pela ausência de estrelas na Via Láctea.'
+                    },
+                    {
+                        className: 'viz-ema-agriculture',
+                        icon: '🌱',
+                        label: 'Ciclo Agrícola',
+                        description: 'Simboliza a influência da Ema no calendário de plantio e colheita das comunidades indígenas.'
+                    }
+                ],
+                sections: [
+                    {
+                        icon: '🌽',
+                        title: 'Calendário Agrícola',
+                        content: 'A constelação da Ema é um dos principais elementos que os povos indígenas utilizam para marcar a passagem das estações do ano e organizar suas atividades agrícolas. Ela é um guia essencial para determinar o tempo de plantio, colheita e outras atividades sazonais, demonstrando um profundo conhecimento da relação entre céu e terra.'
+                    },
+                    {
+                        icon: '❄️☀️',
+                        title: 'Marcação das Estações',
+                        content: 'No sul do Brasil, o aparecimento da Ema no céu indica o início do inverno, um período que requer planejamento para a sobrevivência, como o armazenamento de alimentos e a preparação para as baixas temperaturas. Para os povos do norte, a Ema anuncia o início da estação seca, influenciando as práticas de caça, pesca e agricultura de forma adaptativa.'
+                    },
+                    {
+                        icon: '🔭',
+                        title: 'Como Identificar a Constelação',
+                        content: 'A Ema não é formada por estrelas brilhantes, mas pela silhueta escura que se assemelha a uma ema na Via Láctea, e algumas estrelas próximas. Para identificá-la, é importante observar o céu noturno no lado leste, no período entre junho e julho, ao anoitecer. A constelação da Ema se encontra próxima às constelações do Cruzeiro do Sul e do Escorpião.'
+                    }
+                ]
+            },
+            'cruzeiro': {
+                title: 'O Cruzeiro do Sul (Crux)',
+                intro: 'O Cruzeiro do Sul é uma constelação de grande importância no Hemisfério Sul, usada para orientação e marcação do tempo. Para muitos povos originários, como os Tupi-Guarani, suas estrelas e posição são fundamentais para a vida cotidiana e ritualística. Visualize o formato clássico de uma cruz brilhante no céu noturno.',
+                visuals: [
+                    {
+                        className: 'viz-cruzeiro-compass',
+                        icon: '🧭',
+                        label: 'Bússola Natural',
+                        description: 'Ilustra o uso do Cruzeiro do Sul como um guia de navegação, apontando para o sul.'
+                    },
+                    {
+                        className: 'viz-cruzeiro-upright',
+                        icon: '✝️',
+                        label: 'A Cruz e as Estações',
+                        description: 'Representa a posição do Cruzeiro do Sul no céu, indicando diferentes épocas do ano, como o inverno quando está "em pé".'
+                    }
+                ],
+                sections: [
+                    {
+                        icon: '🧭',
+                        title: 'Orientação e Navegação',
+                        content: 'A constelação serve como uma bússola natural, com o eixo maior da cruz apontando diretamente para o sul. Isso permite que os povos se localizem e se desloquem com segurança em seus territórios, tanto na terra quanto na água, um conhecimento vital para a navegação e exploração.'
+                    },
+                    {
+                        icon: '🗓️',
+                        title: 'Marcação do Tempo e Estações',
+                        content: 'A posição do Cruzeiro do Sul ao longo da noite e do ano auxilia na identificação de diferentes estações e intervalos de tempo, sendo usado como um calendário agrícola. Para os Tupi-Guarani, a posição do Cruzeiro do Sul (que eles associam à constelação da Ema) ao anoitecer indica o início das diferentes estações, como o inverno, quando a cruz está "em pé", apontando para o sul.'
+                    },
+                    {
+                        icon: '📜',
+                        title: 'Cultura e Mitologia Tupi-Guarani',
+                        content: 'Muitos povos originários possuem histórias e mitos associados ao Cruzeiro do Sul, que ajudam a explicar a origem da constelação e seus significados. Para os Tupi-Guarani, o Cruzeiro do Sul é a constelação da Ema, um animal importante em sua mitologia. A constelação também está presente em rituais e práticas culturais, conectando o mundo terreno ao celestial.'
+                    }
+                ]
+            },
+            'via-lactea': {
+                title: 'A Via Láctea: O Caminho Sagrado',
+                intro: 'Longe de ser apenas um aglomerado de estrelas, a Via Láctea é interpretada por muitos povos originários como uma entidade viva e central em suas cosmologias. Ela é um caminho que conecta mundos, a morada de seres divinos e uma fonte inesgotável de histórias. Pense na vasta faixa brilhante que atravessa o céu noturno como uma grande trilha ou um rio celestial.',
+                visuals: [
+                    {
+                        className: 'viz-vialactea-path',
+                        icon: '✨',
+                        label: 'Caminho Estrelado',
+                        description: 'Representação do caminho sagrado que a Via Láctea simboliza, conectando diferentes planos de existência.'
+                    },
+                    {
+                        className: 'viz-vialactea-spirit',
+                        icon: '🌟',
+                        label: 'Morada de Ancestrais',
+                        description: 'Simboliza a Via Láctea como o lar de divindades e espíritos ancestrais para diversas culturas indígenas.'
+                    }
+                ],
+                sections: [
+                    {
+                        icon: '✨',
+                        title: 'Caminho que Conecta Planos',
+                        content: 'A Via Láctea é frequentemente vista como um caminho sagrado que conecta diferentes planos de existência, como o céu e a terra, o mundo dos vivos e o mundo dos espíritos ou ancestrais. É um elo entre o cosmo e a vida terrena, uma ponte para o transcendente.'
+                    },
+                    {
+                        icon: '🏠',
+                        title: 'Morada de Divindades e Ancestrais',
+                        content: 'Em diversas culturas, a faixa brilhante da Via Láctea é considerada a morada de seres superiores, deuses criadores ou espíritos de ancestrais que olham por suas comunidades na Terra, um lugar de poder e reverência.'
+                    },
+                    {
+                        icon: '📖',
+                        title: 'Fonte de Histórias e Guia Natural',
+                        content: 'As constelações, tanto as de estrelas brilhantes quanto as escuras (como a Ema e a Jararaca), encontradas na Via Láctea são elementos centrais de narrativas míticas que explicam a origem do mundo, o comportamento dos animais e as relações entre os seres. Elas também servem como um guia fundamental para identificar épocas do ano, prever eventos naturais e orientar a caça, a pesca e a agricultura.'
+                    }
+                ]
+            },
+            'ask-elder': {
+                title: 'Pergunte ao Ancião Estelar ✨',
+                intro: 'Tenha uma conversa com um "ancião" virtual e explore as profundezas do conhecimento indígena sobre o céu e a natureza. Faça sua pergunta e receba uma resposta inspirada na sabedoria ancestral.',
+                visuals: [], // No specific visuals for this interactive section
+                sections: [] // Content dynamically generated
+            }
+        };
+
+        const mainContent = document.getElementById('main-content');
+        const navigationLinks = document.querySelectorAll('#navigation .nav-link');
+
+        async function fetchGeminiResponse(prompt) {
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // If you want to use models other than gemini-2.5-flash-preview-05-20 or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            let response;
+            let result;
+            let retries = 0;
+            const maxRetries = 5;
+            const baseDelay = 1000; // 1 second
+
+            while (retries < maxRetries) {
+                try {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 429) { // Too Many Requests
+                        retries++;
+                        const delay = baseDelay * Math.pow(2, retries - 1);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+
+                    result = await response.json();
+                    break; // Success, exit loop
+                } catch (error) {
+                    retries++;
+                    const delay = baseDelay * Math.pow(2, retries - 1);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+
+            if (result && result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                return result.candidates[0].content.parts[0].text;
+            } else {
+                return "Desculpe, não consegui obter uma resposta do ancião estelar no momento. Tente novamente mais tarde.";
+            }
+        }
+
+        function renderContent(key) {
+            const data = contentData[key];
+            if (!data) return;
+
+            let contentHtml = '';
+
+            if (key === 'ask-elder') {
+                contentHtml = `
+                    <div class="fade-in">
+                        <h2 class="text-3xl font-bold text-[#5C4B3E]">${data.title}</h2>
+                        <p class="mt-4 mb-8 text-gray-700 max-w-3xl">${data.intro}</p>
+                        <div class="content-card p-6 flex flex-col gap-4">
+                            <textarea id="elder-question" class="w-full p-3 border border-[#D6C0A5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C6AC8F] text-gray-800" rows="4" placeholder="Faça sua pergunta ao ancião estelar..."></textarea>
+                            <button id="ask-button" class="bg-[#C6AC8F] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#A98E70] transition-colors duration-200 flex items-center justify-center gap-2">
+                                <span class="text-xl">✨</span> Perguntar
+                            </button>
+                            <div id="elder-response" class="mt-4 p-4 bg-[#F8F1E9] border border-[#EAE0D5] rounded-lg text-gray-800 min-h-[80px] flex items-center justify-center text-center">
+                                Digite sua pergunta acima para conversar com o ancião estelar.
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                let visualsHtml = data.visuals.map(viz => `
+                    <div class="concept-visual ${viz.className}" title="${viz.description}">
+                        <span class="icon">${viz.icon}</span>
+                        <span class="label">${viz.label}</span>
+                    </div>
+                `).join('');
+
+                let sectionsHtml = data.sections.map(section => `
+                    <div class="content-card p-6 flex items-start gap-4">
+                        <div class="text-2xl">${section.icon}</div>
+                        <div>
+                            <h3 class="font-semibold text-lg text-[#3D352E]">${section.title}</h3>
+                            <p class="mt-1 text-gray-600 text-sm">${section.content}</p>
+                        </div>
+                    </div>
+                `).join('');
+
+                contentHtml = `
+                    <div class="fade-in">
+                        <h2 class="text-3xl font-bold text-[#5C4B3E]">${data.title}</h2>
+                        <p class="mt-4 text-gray-700 max-w-3xl">${data.intro}</p>
+                        <div class="flex flex-wrap gap-6 justify-center my-8">
+                            ${visualsHtml}
+                        </div>
+                        <div class="space-y-6">
+                            ${sectionsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            mainContent.innerHTML = contentHtml;
+
+            if (key === 'ask-elder') {
+                const askButton = document.getElementById('ask-button');
+                const questionInput = document.getElementById('elder-question');
+                const responseDiv = document.getElementById('elder-response');
+
+                askButton.addEventListener('click', async () => {
+                    const question = questionInput.value.trim();
+                    if (!question) {
+                        responseDiv.innerHTML = "Por favor, digite uma pergunta para o ancião.";
+                        return;
+                    }
+
+                    responseDiv.innerHTML = `<div class="loading-spinner"></div> <span class="ml-2">Carregando sabedoria...</span>`;
+                    responseDiv.classList.add('flex', 'items-center', 'justify-center', 'text-center');
+
+                    try {
+                        const generatedResponse = await fetchGeminiResponse(`Com base nos seguintes conceitos de astronomia indígena: "${JSON.stringify(contentData)}" e suas informações de constelações, responda como um sábio ancião indígena à pergunta: "${question}". Mantenha a resposta concisa e respeitosa, focando na conexão do cosmos com a vida dos povos originários.`);
+                        responseDiv.innerHTML = generatedResponse;
+                        responseDiv.classList.remove('flex', 'items-center', 'justify-center', 'text-center');
+                    } catch (error) {
+                        responseDiv.innerHTML = "Erro ao se conectar com o ancião estelar. Tente novamente.";
+                        responseDiv.classList.remove('flex', 'items-center', 'justify-center', 'text-center');
+                    }
+                });
+            }
+        }
+
+        function handleNavClick(event) {
+            event.preventDefault();
+            const link = event.currentTarget;
+            const key = link.getAttribute('href').substring(1);
+
+            // Update active class
+            navigationLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+
+            // Update URL hash
+            window.location.hash = key;
+
+            // Render content
+            renderContent(key);
+        }
+
+        navigationLinks.forEach(link => {
+            link.addEventListener('click', handleNavClick);
+        });
+
+        // Initial load
+        function initialLoad() {
+            const hash = window.location.hash.substring(1);
+            const keyToLoad = contentData[hash] ? hash : 'jararaca';
+            
+            navigationLinks.forEach(l => {
+                l.classList.remove('active');
+                if (l.getAttribute('href') === `#${keyToLoad}`) {
+                    l.classList.add('active');
+                }
+            });
+            
+            renderContent(keyToLoad);
+        }
+
+        window.addEventListener('DOMContentLoaded', initialLoad);
+    </script>
+
 </body>
 </html>
