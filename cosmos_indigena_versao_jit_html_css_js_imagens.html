@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cosmos Indígena — SPA com imagens (JIT-ready)</title>
+
+  <!-- Tailwind CDN (modo JIT do CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sand: { 50:'#FBF4E8',100:'#F8F1E9',200:'#F4ECE0',300:'#EAE0D5',400:'#D6C0A5',500:'#C6AC8F' },
+            ink: { 700:'#4A4A4A', 800:'#3D352E' },
+            space: { 900:'#0b1228', 800:'#111736', 700:'#19214a' }
+          },
+          fontFamily: { inter: ["Inter", "ui-sans-serif", "system-ui"] }
+        }
+      }
+    }
+  </script>
+  <!-- Fonte -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', ui-sans-serif, system-ui; background: radial-gradient(1200px 600px at 10% -10%, #FBF4E8 0%, #FDF8F0 50%, #F5EDE6 100%); color:#4A4A4A; }
+    .nav-link { transition: all .25s ease; border-left: 4px solid transparent; }
+    .nav-link.active { background:#EAE0D5; border-left-color:#C6AC8F; color:#333; font-weight:600; }
+    .nav-link:hover { background:#F4ECE0; border-left-color:#D6C0A5; }
+    .content-card { background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.05); border:1px solid #EAE0D5; }
+    .fade-in { animation: fadeIn .45s ease-out; }
+    @keyframes fadeIn { from {opacity:0; transform: translateY(12px)} to {opacity:1; transform:none} }
+    dialog[open] { animation: show .18s ease-out; }
+    @keyframes show { from { opacity:0; transform: translateY(8px) } to { opacity:1; transform:none } }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row">
+  <!-- Sidebar -->
+  <aside class="w-full lg:w-64 bg-sand-100 border-b lg:border-r border-sand-300 flex-shrink-0">
+    <div class="p-6">
+      <h1 class="text-xl font-bold text-[#5C4B3E]">Cosmos Indígena</h1>
+      <p class="text-sm text-[#7A6C60] mt-1">Um Olhar para o Céu Ancestral</p>
+    </div>
+    <nav id="navigation" class="flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible">
+      <a href="#jararaca" class="nav-link active p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>🐍</span> Jararaca</a>
+      <a href="#homem-velho" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>👴</span> Homem Velho</a>
+      <a href="#garca" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>🕊️</span> Garça</a>
+      <a href="#ema" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>🪶</span> Ema</a>
+      <a href="#cruzeiro" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>✨</span> Cruzeiro do Sul</a>
+      <a href="#via-lactea" class="nav-link p-4 lg:pl-6 text-sm flex items-center gap-3 whitespace-nowrap"><span>🌌</span> Via Láctea</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main id="main" class="flex-1 p-4 sm:p-6 lg:p-10">
+    <!-- conteúdo via JS -->
+  </main>
+
+  <!-- Modal visualizador SVG -->
+  <dialog id="viewer" class="w-[min(96vw,900px)] rounded-xl overflow-hidden p-0 border border-sand-300 bg-white">
+    <div class="flex items-center justify-between px-4 py-3 bg-sand-100 border-b border-sand-300">
+      <h3 id="viewerTitle" class="font-semibold text-ink-800">Pré-visualização</h3>
+      <div class="flex gap-2">
+        <button id="btnDownload" class="px-3 py-1.5 rounded-lg border border-sand-400 text-sm">Baixar SVG</button>
+        <button id="btnClose" class="px-3 py-1.5 rounded-lg bg-sand-500 text-white text-sm">Fechar</button>
+      </div>
+    </div>
+    <div class="p-2 bg-space-900">
+      <div id="svgHost" class="bg-black rounded-lg overflow-hidden"></div>
+    </div>
+  </dialog>
+
+  <script>
+    // =============================
+    // Dados + imagens procedurais (SVG) — SEM dependências externas
+    // =============================
+    // Cada item pode ter: stars [{x,y,mag}], lines [[idA,idB,...]] ou um "custom"(svgString)
+    const CONSTS = {
+      // Jararaca (cobra celeste) — representação estilizada
+      jararaca: {
+        title: 'A Constelação da Jararaca (Aña poero)',
+        intro: 'Calendário natural Tukano ligado às cheias dos rios. Visual abaixo: trilha sinuosa (corpo da serpente) sobre um campo estelar.',
+        image: { kind:'generated', width: 900, height: 560, make: () => snakeSVG() },
+        bullets: [
+          ['🗓️ Calendário', 'Marca chuvas e cheias; redireciona pesca, caça e roça.'],
+          ['👥 Rituais', 'Benzimentos e cerimônias de passagem no início do ciclo.'],
+          ['🌍 Cosmogonia', 'Partes do corpo associadas às fases da enchente.']
+        ]
+      },
+      // Homem Velho = combinação (Órion + Touro) — usamos Órion como guia visual
+      'homem-velho': {
+        title: 'A Constelação do Homem Velho (Tuya)',
+        intro: 'Marcador temporal associado ao verão no sul e chuvas no norte. Visual com o asterismo de Órion (cinturão, Betelgeuse e Rigel).',
+        image: { kind:'generated', width: 900, height: 560, make: () => orionSVG() },
+        bullets: [
+          ['⏳ Tempo', 'Indica virada de estação e organização das atividades.'],
+          ['📜 Mitologia', 'Lendas de transformação em estrela; Betelgeuse como perna.'],
+          ['🌿 Cultura', 'Transmissão oral e orientação prática do cotidiano.']
+        ]
+      },
+      garca: {
+        title: 'A Constelação da Garça',
+        intro: 'Símbolo de sabedoria e conexão entre mundos. Visual: silhueta de garça sobre Via Láctea estilizada.',
+        image: { kind:'generated', width: 900, height: 560, make: () => heronSVG() },
+        bullets: [
+          ['🧠 Sabedoria', 'Percepção, atenção e adaptação.'],
+          ['↔️ Ponte', 'Transita entre o físico e o espiritual.'],
+          ['🎨 Diversidade', 'Cada povo possui narrativas próprias.']
+        ]
+      },
+      ema: {
+        title: 'A Constelação da Ema (Guirá Nhandu)',
+        intro: 'Constelação escura na Via Láctea; guia agrícola. Visual: silhueta escura de ema sobre campo estelar.',
+        image: { kind:'generated', width: 900, height: 560, make: () => rheaSVG() },
+        bullets: [
+          ['🌽 Agricultura', 'Marca plantio/colheita; estações.'],
+          ['❄️/☀️ Estações', 'Inverno no sul; seca no norte.'],
+          ['🔭 Identificação', 'Silhueta escura próxima a Cruzeiro e Escorpião.']
+        ]
+      },
+      cruzeiro: {
+        title: 'O Cruzeiro do Sul (Crux)',
+        intro: 'Bússola natural do hemisfério sul. Visual com as cinco estrelas principais e linhas de orientação.',
+        image: { kind:'generated', width: 900, height: 560, make: () => cruxSVG() },
+        bullets: [
+          ['🧭 Orientação', 'Eixo maior aponta para o sul.'],
+          ['🗓️ Calendário', 'Posição indica a época do ano.'],
+          ['📜 Mitologia', 'Presente em rituais e narrativas Tupi-Guarani.']
+        ]
+      },
+      'via-lactea': {
+        title: 'A Via Láctea — Caminho Sagrado',
+        intro: 'Faixa luminosa como ponte entre planos. Visual com banda estelar e brilho difuso.',
+        image: { kind:'generated', width: 900, height: 560, make: () => milkySVG() },
+        bullets: [
+          ['✨ Caminho', 'Conecta céu, terra e ancestrais.'],
+          ['🏠 Morada', 'Lar de divindades e espíritos.'],
+          ['📖 Histórias', 'Guia natural para pesca, caça e agricultura.']
+        ]
+      }
+    };
+
+    // ========= SVG builders =========
+    function starfield(w,h, density=0.00022) {
+      const n = Math.floor(w*h*density);
+      let dots = '';
+      for (let i=0;i<n;i++) {
+        const x = Math.random()*w;
+        const y = Math.random()*h;
+        const r = Math.random()*1.2 + 0.3;
+        const o = (Math.random()*0.6+0.4).toFixed(2);
+        dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="white" opacity="${o}"/>`;
+      }
+      return dots;
+    }
+
+    function orionSVG(){
+      const w=900,h=560;
+      const stars=[
+        {id:'Betelgeuse',x:220,y:120,m:1.0},
+        {id:'Bellatrix',x:360,y:130,m:1.6},
+        {id:'Alnitak',x:270,y:250,m:1.8},
+        {id:'Alnilam',x:310,y:240,m:1.7},
+        {id:'Mintaka',x:350,y:230,m:2.0},
+        {id:'Saiph',x:260,y:400,m:2.1},
+        {id:'Rigel',x:380,y:410,m:0.1}
+      ];
+      const lines=[[0,2,3,4,1],[2,5,6,4]];
+      let s='';
+      s += `<rect width="100%" height="100%" fill="url(#bg)"/>`;
+      s += starfield(w,h,0.00025);
+      // draw lines
+      s += lines.map(path=>{
+        const d = path.map((i,idx)=> (idx? 'L':'M')+stars[i].x+','+stars[i].y ).join(' ');
+        return `<path d="${d}" stroke="#7aa2ff" stroke-width="2" fill="none" opacity=".9"/>`;
+      }).join('');
+      // draw stars
+      s += stars.map(st=>`<g>
+        <circle cx="${st.x}" cy="${st.y}" r="${4.5 - Math.min(3.5, st.m)}" fill="#fff"/>
+        <text x="${st.x+8}" y="${st.y-6}" fill="#cdd9ff" font-size="12">${st.id}</text>
+      </g>`).join('');
+      return wrapSVG(w,h,s);
+    }
+
+    function cruxSVG(){
+      const w=900,h=560;
+      const stars=[
+        {id:'Acrux',x:480,y:420,m:0.8},
+        {id:'Mimosa',x:420,y:340,m:1.3},
+        {id:'Gacrux',x:450,y:220,m:1.6},
+        {id:'Delta Cru',x:530,y:300,m:2.0},
+        {id:'Epsilon Cru',x:560,y:360,m:3.0}
+      ];
+      const lines=[[2,0],[1,3],[2,1,0,3]];
+      let s='';
+      s += `<rect width="100%" height="100%" fill="url(#bg)"/>`;
+      s += starfield(w,h,0.00022);
+      // auxiliary south line
+      s += `<line x1="${(stars[2].x+stars[0].x)/2}" y1="0" x2="${(stars[2].x+stars[0].x)/2}" y2="${h}" stroke="rgba(255,255,255,.15)" stroke-dasharray="6 6"/>`;
+      s += lines.map(path=>{
+        const d = path.map((i,idx)=> (idx? 'L':'M')+stars[i].x+','+stars[i].y ).join(' ');
+        return `<path d="${d}" stroke="#9ad0ff" stroke-width="2" fill="none"/>`;
+      }).join('');
+      s += stars.map(st=>`<g>
+        <circle cx="${st.x}" cy="${st.y}" r="${5 - Math.min(3.5, st.m)}" fill="#fff"/>
+        <text x="${st.x+8}" y="${st.y-6}" fill="#cdd9ff" font-size="12">${st.id}</text>
+      </g>`).join('');
+      return wrapSVG(w,h,s);
+    }
+
+    function milkySVG(){
+      const w=900,h=560;
+      let s='';
+      s += `<rect width="100%" height="100%" fill="url(#bg)"/>`;
+      s += starfield(w,h,0.0003);
+      // diffuse band
+      s += `<g opacity=".8">
+        <defs>
+          <linearGradient id="band" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#c7d2fe" stop-opacity="0"/>
+            <stop offset="50%" stop-color="#c7d2fe" stop-opacity=".6"/>
+            <stop offset="100%" stop-color="#c7d2fe" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <rect x="-100" y="140" width="1100" height="140" fill="url(#band)" transform="rotate(-18 450 280)"/>
+        <rect x="-120" y="260" width="1100" height="120" fill="url(#band)" transform="rotate(-18 450 320)" opacity=".65"/>
+      </g>`;
+      return wrapSVG(w,h,s);
+    }
+
+    function rheaSVG(){
+      const w=900,h=560;
+      let s='';
+      s += `<rect width="100%" height="100%" fill="url(#bg)"/>`;
+      s += starfield(w,h,0.00028);
+      // dark silhouette (ema)
+      s += `<g opacity=".9">
+        <path d="M130 380 C200 300 260 260 320 250 C360 245 390 250 420 270 C470 300 510 350 560 400 C590 430 610 450 650 460 C690 468 740 465 770 455 C735 470 690 490 650 500 C590 515 520 520 470 505 C420 490 380 460 340 420 C300 380 260 360 220 360 C190 360 160 368 130 380 Z" fill="#000" opacity=".85"/>
+        <circle cx="560" cy="305" r="16" fill="#000"/>
+        <circle cx="575" cy="305" r="4" fill="#fff" opacity=".2"/>
+      </g>`;
+      return wrapSVG(w,h,s);
+    }
+
+    function heronSVG(){
+      const w=900,h=560;
+      let s='';
+      s += `<rect width="100%" height="100%" fill="url(#bg)"/>`;
+      s += starfield(w,h,0.00025);
+      // milky band
+      s += `<rect x="-120" y="220" width="1100" height="110" fill="rgba(199,210,254,.55)" transform="rotate(-12 450 280)"/>`;
+      // heron silhouette
+      s += `<path d="M220 420 C240 360 260 330 300 300 C330 280 370 270 420 268 C450 267 480 270 510 280 C520 250 540 230 560 220 C570 216 580 220 585 228 C592 240 590 260 580 278 C600 288 615 305 620 330 C625 360 612 390 590 410 C565 433 525 440 490 430 C455 420 430 400 410 372 C375 380 350 392 320 420 C295 443 270 455 245 456 C232 457 224 446 220 420 Z" fill="#0b1228" opacity=".9"/>`;
+      return wrapSVG(w,h,s);
+    }
+
+    function snakeSVG(){
+      const w=900,h=560;
+      let s='';
+      s += `<rect width="100%" height="100%" fill="url(#bg)"/>`;
+      s += starfield(w,h,0.00028);
+      // sinuous snake
+      s += `<path d="M60 360 C140 300 220 300 300 340 C360 370 420 380 480 360 C540 340 600 330 660 350 C720 370 780 370 840 340" stroke="#93c5fd" stroke-width="6" fill="none" stroke-linecap="round" opacity=".95"/>`;
+      s += `<circle cx="840" cy="340" r="14" fill="#93c5fd"/>`;
+      s += `<circle cx="846" cy="334" r="3" fill="#fff"/>`;
+      return wrapSVG(w,h,s);
+    }
+
+    function wrapSVG(w,h,inner){
+      return `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${w} ${h}' width='${w}' height='${h}'>
+        <defs>
+          <radialGradient id="bg" cx="30%" cy="0%" r="100%">
+            <stop offset="0%" stop-color="#111a3a"/>
+            <stop offset="60%" stop-color="#0b1228"/>
+            <stop offset="100%" stop-color="#070a16"/>
+          </radialGradient>
+        </defs>
+        ${inner}
+      </svg>`;
+    }
+
+    // ========= Render =========
+    const mainEl = document.getElementById('main');
+    const navLinks = document.querySelectorAll('#navigation .nav-link');
+    const viewer = document.getElementById('viewer');
+    const svgHost = document.getElementById('svgHost');
+    const btnClose = document.getElementById('btnClose');
+    const btnDownload = document.getElementById('btnDownload');
+    const viewerTitle = document.getElementById('viewerTitle');
+
+    function renderPage(key){
+      const data = CONSTS[key];
+      if(!data) return;
+      const cards = data.bullets.map(([icon,title,desc])=>
+        `<div class='content-card p-5 flex items-start gap-3'>
+          <div class='text-xl'>${icon}</div>
+          <div><h3 class='font-semibold text-lg text-ink-800'>${title}</h3>
+          ${desc?`<p class='mt-1 text-sm text-ink-700'>${desc}</p>`:''}</div>
+        </div>`
+      ).join('');
+
+      const imgPreview = `<div class='content-card overflow-hidden'>
+        <div class='flex items-center justify-between px-4 py-3 border-b border-sand-300 bg-sand-100'>
+          <h3 class='font-semibold text-ink-800'>Imagem da constelação</h3>
+          <div class='flex gap-2'>
+            <button data-key='${key}' class='btn-open px-3 py-1.5 rounded-lg bg-sand-500 text-white text-sm'>Ver em tela cheia</button>
+            <button data-key='${key}' class='btn-save px-3 py-1.5 rounded-lg border border-sand-400 text-sm'>Baixar SVG</button>
+          </div>
+        </div>
+        <div class='bg-space-900 p-2'>
+          <div class='rounded-lg overflow-hidden'>${CONSTS[key].image.make()}</div>
+        </div>
+      </div>`;
+
+      mainEl.innerHTML = `
+        <section class='fade-in'>
+          <h2 class='text-3xl font-bold text-[#5C4B3E]'>${data.title}</h2>
+          <p class='mt-3 mb-6 text-ink-700 max-w-3xl'>${data.intro}</p>
+          ${imgPreview}
+          <div class='mt-6 grid sm:grid-cols-2 gap-4'>${cards}</div>
+        </section>`;
+
+      // wire buttons
+      mainEl.querySelectorAll('.btn-open').forEach(b=> b.addEventListener('click', ()=> openViewer(b.dataset.key)) );
+      mainEl.querySelectorAll('.btn-save').forEach(b=> b.addEventListener('click', ()=> downloadSVG(b.dataset.key)) );
+    }
+
+    function openViewer(key){
+      const svg = CONSTS[key].image.make();
+      svgHost.innerHTML = svg;
+      viewerTitle.textContent = CONSTS[key].title;
+      viewer.showModal();
+    }
+    btnClose.addEventListener('click', ()=> viewer.close());
+
+    function downloadSVG(key){
+      const svg = CONSTS[key].image.make();
+      const blob = new Blob([svg], {type:'image/svg+xml'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = (key+".svg"); document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+    }
+
+    function handleNavClick(e){
+      e.preventDefault();
+      const link = e.currentTarget; const key = link.getAttribute('href').slice(1);
+      navLinks.forEach(l=> l.classList.remove('active'));
+      link.classList.add('active');
+      window.location.hash = key;
+      renderPage(key);
+    }
+    navLinks.forEach(l=> l.addEventListener('click', handleNavClick));
+
+    function initialLoad(){
+      const hash = location.hash.slice(1);
+      const key = CONSTS[hash] ? hash : 'jararaca';
+      navLinks.forEach(l=>{
+        l.classList.toggle('active', l.getAttribute('href') === '#'+key);
+      });
+      renderPage(key);
+    }
+    window.addEventListener('DOMContentLoaded', initialLoad);
+  </script>
+</body>
+</html>
